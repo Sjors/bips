@@ -17,41 +17,41 @@ This BIP proposes a flexible and upgradable extended block header format thoroug
 
 ==Motivation==
 
-In the current Bitcoin protocol, the block header is fixed at 80 bytes with no space reserved for additional data. The coinbase transaction becomes the only practical location for new consensus-critical data, such as those proposed by BIP100 and BIP141. Although this preserves maximal backward compatibility for full nodes, it is not ideal for light clients because the size of coinbase transaction and depth of Merkle tree are indefinite.
+In the current Bitcoin protocol, the block header is fixed at 80 bytes with no space reserved for additional data. The coinbase transaction becomes the only practical location for new consensus-critical data, such as those proposed by [https://github.com/jgarzik/bip100/blob/master/bip-0100.mediawiki BIP100] and  [https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki BIP141]. Although this preserves maximal backward compatibility for full nodes, it is not ideal for light clients because the size of coinbase transaction and depth of Merkle tree are indefinite.
 
 This BIP proposes an extended block header format with the following objectives:
 
 * To provide a flexible header format which is easily upgradeable with softforks.
 * Old light nodes following the hardfork chain if it has most proof-of-work, but not seeing any transactions.
-* Being compatible with the Stratum mining protocol to avoid mining machine upgrade.
+* Being compatible with the [https://en.bitcoin.it/wiki/Stratum_mining_protocol Stratum mining protocol] to avoid mining machine upgrade.
 * Having a deterministic hardfork activation.
 * Being a permanent hardfork, as supporting nodes will not accept blocks mined in old rules after hardfork is activated.
 
 ==Specification==
 
-The following rules are activated when the median timestamp of the past 11 blocks is equal to or greater than a to-be-determined time and after activation of BIP65.
+The following rules are activated when the median timestamp of the past 11 blocks is equal to or greater than a to-be-determined time and after activation of [https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki BIP65].
 
 * the <code>nVersion</code> of the block header MUST have the most significant bit (the sign bit) signalled.
-* for the purpose of counting softforks proposal signalling (BIP9), the sign bit is ignored.
-* segregated witness MUST be enabled, if it had not been already activated through the BIP9 mechanism.
+* for the purpose of counting softforks proposal signalling ([https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki BIP9]), the sign bit is ignored.
+* segregated witness MUST be enabled, if it had not been already activated through the [https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki BIP9] mechanism.
 * the witness of the first input of the coinbase transaction MUST have exactly one stack item (the "extended header"), with the following data:
 ** bytes   0 to   3: <code>nHeight</code> MUST be equal to the height of this block (signed little endian)
 ** bytes   4 to   5: MUST be exactly <code>0x0000</code>
 ** bytes   6 to  53: extra data with no meaning in Bitcoin protocol
 ** bytes  54 to  85: <code>hashMerkleRoot</code> the transaction Merkle root (calculated in the same way as the original Merkle root in the block header)
-** bytes  86 to 117: <code>hashWitnessRoot</code> the witness Merkle root (NOT calculated in the way described in BIP141)
+** bytes  86 to 117: <code>hashWitnessRoot</code> the witness Merkle root (NOT calculated in the way described in [https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki BIP141])
 ** bytes 118 to 121: <code>nTx</code> MUST be equal to the number of transactions in this block (unsigned little endian, minimum 1)
 ** bytes 122 to 129: <code>nFees</code> MUST be equal to the total transaction fee paid by all transactions, except the coinbase transaction, in the block (unsigned little endian)
-** bytes 130 to 137: <code>nWeight</code> MUST be equal to or greater than the total weight of all transactions in the block (to be described in another BIP. NOT calculated in the way described in BIP141)
+** bytes 130 to 137: <code>nWeight</code> MUST be equal to or greater than the total weight of all transactions in the block (to be described in another BIP. NOT calculated in the way described in [https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki BIP141])
 ** bytes 138+      : Reserved space for future upgrades
 * bytes 36 to 67 in the block header, the place originally for the <code>hashMerkleRoot</code> is replaced by the double SHA256 hash of the extended header.
 * size of the extended header MUST be at least 138 bytes.
 * <code>wtxid</code> of the coinbase transaction is calculated as if the witness of its first input is empty.
 * the <code>hashWitnessRoot</code> is calculated with all <code>wtxid</code> as leaves, in a way similar to the <code>hashMerkleRoot</code>.
-* the <code>OP_RETURN</code> witness commitment rules described in BIP141 is not enforced.
-* The witness reserved valued described in BIP141 is removed from the protocol.
+* the <code>OP_RETURN</code> witness commitment rules described in [https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki BIP141] is not enforced.
+* The witness reserved valued described in [https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki BIP141] is removed from the protocol.
 
-A special <code>extheader</code> softfork is defined, with the following BIP9 parameters:
+A special <code>extheader</code> softfork is defined, with the following [https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki BIP9] parameters:
 * bit: 15
 * starttime: 0
 * timeout: 0xffffffff
